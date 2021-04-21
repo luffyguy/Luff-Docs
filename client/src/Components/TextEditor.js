@@ -4,6 +4,7 @@ import "quill/dist/quill.snow.css";
 import { io } from "socket.io-client";
 import { useParams } from "react-router-dom";
 
+const SAVE_INTERVAL_MS = 2000;
 //toolbar options
 const toolbarOptions = [
   [{ size: ["small", false, "large", "huge"] }], // custom dropdown
@@ -14,7 +15,6 @@ const toolbarOptions = [
   [{ script: "sub" }, { script: "super" }], // superscript/subscript
   [{ indent: "-1" }, { indent: "+1" }], // outdent/indent
   [{ direction: "rtl" }], // text direction
-
   [{ color: [] }, { background: [] }], // dropdown with defaults from theme
   [{ align: [] }],
 
@@ -45,6 +45,18 @@ const TextEditor = () => {
     socket.emit("get-document", documentId);
   }, [socket, quill, documentId]);
 
+  useEffect(() => {
+    if (socket == null || quill == null) return;
+
+    const interval = setInterval(() => {
+      socket.emit("save-document", quill.getContents())
+    }, SAVE_INTERVAL_MS);
+
+    return()=>{
+      clearInterval(interval)
+    }
+  }, [socket, quill]);
+
   //to send all the changes
   useEffect(() => {
     if (socket == null || quill == null) return;
@@ -66,9 +78,9 @@ const TextEditor = () => {
     const handler = (delta) => {
       quill.updateContents(delta);
     };
-    socket.on("recieve-changes", handler);
+    socket.on("receive-changes", handler);
     return () => {
-      quill.off("recieve-changes", handler);
+      quill.off("receive-changes", handler);
     };
   }, [socket, quill]);
 
@@ -85,7 +97,7 @@ const TextEditor = () => {
       },
       theme: "snow",
     });
-    q.disable(false);
+    q.disable();
     q.setText("Loading...");
     setQuill(q);
   }, []);
