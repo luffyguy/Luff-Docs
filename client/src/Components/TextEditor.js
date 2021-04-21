@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import Quill from "quill";
 import "quill/dist/quill.snow.css";
 import { io } from "socket.io-client";
+import { useParams } from "react-router-dom";
 
 //toolbar options
 const toolbarOptions = [
@@ -20,6 +21,7 @@ const toolbarOptions = [
   ["clean"], // remove formatting button
 ];
 const TextEditor = () => {
+  const { id: documentId } = useParams();
   const [socket, setSocket] = useState();
   const [quill, setQuill] = useState();
 
@@ -31,6 +33,17 @@ const TextEditor = () => {
       s.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    if (socket == null || quill == null) return;
+
+    socket.once("load-document", (document) => {
+      quill.setContents(document);
+      quill.enable();
+    });
+
+    socket.emit("get-document", documentId);
+  }, [socket, quill, documentId]);
 
   //to send all the changes
   useEffect(() => {
@@ -44,7 +57,7 @@ const TextEditor = () => {
     return () => {
       quill.off("text-change", handler);
     };
-  });
+  }, [socket, quill]);
 
   //to recieve all the changes
   useEffect(() => {
@@ -57,7 +70,7 @@ const TextEditor = () => {
     return () => {
       quill.off("recieve-changes", handler);
     };
-  });
+  }, [socket, quill]);
 
   //to display the text area and update it
   const wrapperRef = useCallback((wrapper) => {
@@ -72,6 +85,8 @@ const TextEditor = () => {
       },
       theme: "snow",
     });
+    q.disable(false);
+    q.setText("Loading...");
     setQuill(q);
   }, []);
   return <div className="container" ref={wrapperRef}></div>;
