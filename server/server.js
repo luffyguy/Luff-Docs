@@ -1,15 +1,16 @@
+const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const Document = require("./Document");
+dotenv.config();
 
-mongoose.connect(
-  "mongodb+srv://Luffyguy:harshh123@luffyguy.urqs4.mongodb.net/Luff-Docs?retryWrites=true&w=majority",
-  {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useFindAndModify: false,
-    useCreateIndex: true,
-  }
-);
+const URL = process.env.dburl;
+
+mongoose.connect(URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useFindAndModify: false,
+  useCreateIndex: true,
+});
 
 const io = require("socket.io")(3001, {
   cors: {
