@@ -1,4 +1,4 @@
-# Luff-Notes
+# Luff-Docs
 
 <img src="https://i.imgur.com/eAqlLsm.png"/>
 
